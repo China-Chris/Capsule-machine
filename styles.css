@@ -1,0 +1,360 @@
+/* 全局重置和基础样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+    overflow-x: hidden;
+    position: relative;
+    min-height: 100vh;
+    background: #ffffff;
+}
+
+/* ========== 背景层：纯白色背景 ========== */
+.background-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    background: #ffffff;
+}
+
+/* ========== 顶部信息区 ========== */
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 40px 60px;
+    z-index: 10;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    pointer-events: none;
+}
+
+.header-left {
+    position: relative;
+}
+
+.title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 32px;
+    font-weight: 700;
+    color: #1a1a1a;
+    letter-spacing: 2px;
+}
+
+.title-dot {
+    color: #ff6b6b;
+    font-size: 16px;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.6;
+        transform: scale(1.2);
+    }
+}
+
+.header-right {
+    text-align: right;
+}
+
+.status-badge {
+    font-size: 18px;
+    font-weight: 600;
+    color: #ff6b6b;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+}
+
+.date-range {
+    font-size: 14px;
+    color: #666;
+    font-weight: 400;
+}
+
+/* ========== 主内容区 ========== */
+.main-content {
+    position: relative;
+    z-index: 5;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 120px 60px 200px;
+    gap: 80px;
+}
+
+/* ========== 中央扭蛋机区域 ========== */
+.capsule-machine-container {
+    flex: 0 0 auto;
+    position: relative;
+    width: 400px;
+    height: 500px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.capsule-machine-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.capsule-machine-wrapper:hover {
+    transform: scale(1.05);
+}
+
+/* 动画视频层 - 默认显示第一帧但不播放 */
+.capsule-machine-video {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    opacity: 1;
+    pointer-events: auto;
+    z-index: 10;
+    cursor: pointer;
+}
+
+/* ========== 两侧辅助文案 ========== */
+.side-content {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.left-content {
+    align-items: flex-start;
+    max-width: 200px;
+}
+
+.year-text {
+    font-size: 24px;
+    font-weight: 700;
+    color: #333;
+    letter-spacing: 4px;
+    margin-bottom: 40px;
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+}
+
+.description-text {
+    font-size: 16px;
+    color: #666;
+    line-height: 2;
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+}
+
+.description-text p {
+    margin-bottom: 20px;
+}
+
+.right-content {
+    align-items: flex-end;
+    max-width: 200px;
+}
+
+.play-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.brace-left,
+.brace-right {
+    font-size: 48px;
+    color: #ff6b6b;
+    font-weight: 300;
+    opacity: 0.6;
+}
+
+.label-text {
+    font-size: 48px;
+    font-weight: 700;
+    color: #1a1a1a;
+    writing-mode: vertical-rl;
+    text-orientation: upright;
+    letter-spacing: 8px;
+}
+
+/* ========== 底部行动区 ========== */
+.footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 40px;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.cta-button {
+    background: linear-gradient(135deg, #ff6b6b, #ff4757);
+    color: white;
+    border: none;
+    padding: 20px 50px;
+    border-radius: 50px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.4);
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    pointer-events: auto;
+}
+
+.cta-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(255, 107, 107, 0.5);
+}
+
+.cta-button:active {
+    transform: translateY(-1px);
+}
+
+.cta-text-chinese {
+    font-size: 18px;
+    letter-spacing: 2px;
+}
+
+.cta-text-english {
+    font-size: 12px;
+    opacity: 0.9;
+    letter-spacing: 1px;
+    font-weight: 400;
+}
+
+/* ========== 响应式设计 ========== */
+@media (max-width: 1200px) {
+    .main-content {
+        gap: 40px;
+    }
+    
+    .capsule-machine-container {
+        width: 350px;
+        height: 450px;
+    }
+}
+
+@media (max-width: 968px) {
+    .main-content {
+        flex-direction: column;
+        gap: 60px;
+        padding: 140px 40px 200px;
+    }
+    
+    .side-content {
+        max-width: 100%;
+        align-items: center;
+    }
+    
+    .left-content .year-text,
+    .left-content .description-text {
+        writing-mode: horizontal-tb;
+        text-orientation: initial;
+    }
+    
+    .right-content .label-text {
+        writing-mode: horizontal-tb;
+        text-orientation: initial;
+    }
+    
+    .play-label {
+        flex-direction: row;
+    }
+    
+    .brace-left,
+    .brace-right {
+        font-size: 32px;
+    }
+    
+    .label-text {
+        font-size: 36px;
+        letter-spacing: 4px;
+    }
+    
+    .capsule-machine-container {
+        width: 300px;
+        height: 400px;
+    }
+}
+
+@media (max-width: 640px) {
+    .header {
+        padding: 30px 30px;
+    }
+    
+    .title {
+        font-size: 24px;
+    }
+    
+    .status-badge {
+        font-size: 16px;
+    }
+    
+    .date-range {
+        font-size: 12px;
+    }
+    
+    .main-content {
+        padding: 120px 20px 180px;
+    }
+    
+    .capsule-machine-container {
+        width: 280px;
+        height: 380px;
+    }
+    
+    .machine-top {
+        width: 240px;
+        height: 240px;
+    }
+    
+    .machine-body {
+        width: 220px;
+        height: 140px;
+    }
+    
+    .cta-button {
+        padding: 16px 40px;
+        font-size: 16px;
+    }
+    
+    .cta-text-chinese {
+        font-size: 16px;
+    }
+    
+    .cta-text-english {
+        font-size: 11px;
+    }
+}
+

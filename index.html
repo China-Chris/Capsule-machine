@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>喜乐贩卖机 - 扭蛋机抽奖活动</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- 背景层：纯白色背景 -->
+    <div class="background-layer"></div>
+
+    <!-- 顶部信息区 -->
+    <header class="header">
+        <!-- 左上角 -->
+        <div class="header-left">
+            <h1 class="title">
+                <span class="title-text">喜乐贩卖机</span>
+                <span class="title-dot">●</span>
+            </h1>
+        </div>
+        <!-- 右上角 -->
+        <div class="header-right">
+            <div class="status-badge">限时扭蛋</div>
+            <div class="date-range">12/19 – 12/25</div>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="main-content">
+        <!-- 左侧辅助文案 -->
+        <div class="side-content left-content">
+            <div class="year-text">2026 YEARS</div>
+            <div class="description-text">
+                <p>扭动一下</p>
+                <p>开启你的惊喜时刻</p>
+                <p>分享你的快乐时刻</p>
+            </div>
+        </div>
+
+        <!-- 中央扭蛋机区域 -->
+        <div class="capsule-machine-container">
+            <div class="capsule-machine-wrapper" id="capsuleMachine">
+                <!-- 动画视频层 -->
+                <video class="capsule-machine-video" id="machineVideo" preload="auto" playsinline>
+                    <source src="niudanji.mp4" type="video/mp4">
+                </video>
+            </div>
+        </div>
+
+        <!-- 右侧辅助文案 -->
+        <div class="side-content right-content">
+            <div class="play-label">
+                <span class="brace-left">｛</span>
+                <span class="label-text">扭蛋机</span>
+                <span class="brace-right">｝</span>
+            </div>
+        </div>
+    </main>
+
+    <!-- 底部行动区 -->
+    <footer class="footer">
+        <button class="cta-button" id="ctaButton">
+            <span class="cta-text-chinese">参加扭蛋机抽奖活动</span>
+            <span class="cta-text-english">Enter the egg twister raffle</span>
+        </button>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
