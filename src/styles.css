@@ -25,7 +25,19 @@ body {
 }
 
 /* ========== 过渡动画 ========== */
-.header-wrapper,
+.header-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 10;
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    /* 移动端固定定位优化 */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    will-change: transform;
+}
+
 .content-wrapper {
     transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
 }
@@ -52,6 +64,12 @@ body {
     display: none;
 }
 
+/* 移动端滚动隐藏效果 - 淡出 */
+.header-wrapper.scroll-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
 @keyframes fadeInScale {
     from {
         opacity: 0;
@@ -65,12 +83,9 @@ body {
 
 /* ========== 顶部信息区 ========== */
 .header {
-    position: fixed;
-    top: 0;
-    left: 0;
+    position: relative;
     width: 100%;
     padding: 40px 60px;
-    z-index: 10;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -359,6 +374,26 @@ body {
 }
 
 @media (max-width: 640px) {
+    .header-wrapper {
+        /* 确保移动端固定定位 */
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        -webkit-transform: translateZ(0);
+        transform: translateZ(0);
+        /* iOS Safari 固定定位优化 */
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        /* 滚动隐藏过渡效果 */
+        transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    }
+    
+    .header-wrapper.scroll-hidden {
+        opacity: 0;
+        pointer-events: none;
+    }
+    
     .header {
         padding: 30px 30px;
     }

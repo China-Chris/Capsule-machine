@@ -11,7 +11,7 @@ function Header() {
       </div>
       <div className="header-right">
         <div className="status-badge">限时扭蛋</div>
-        <div className="date-range">12/19 – 12/25</div>
+        <div className="date-range">4/20 - 4/23</div>
       </div>
     </header>
   )

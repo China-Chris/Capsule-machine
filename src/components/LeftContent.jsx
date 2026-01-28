@@ -7,7 +7,6 @@ function LeftContent() {
       <div className="description-text">
         <p>扭动一下</p>
         <p>开启你的惊喜时刻</p>
-        <p>分享你的快乐时刻</p>
       </div>
     </div>
   )
