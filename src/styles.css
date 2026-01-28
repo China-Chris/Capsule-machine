@@ -644,7 +644,7 @@ body {
     justify-content: center;
     color: #666;
     transition: all 0.2s ease;
-    z-index: 10;
+    z-index: 100;
 }
 
 .prize-modal-close:hover {
@@ -893,6 +893,8 @@ body {
     font-weight: 600;
     font-size: 18px;
     color: #9770ff;
+    text-align: center;
+    word-break: break-all;
 }
 
 .proof-code {
