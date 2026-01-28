@@ -197,10 +197,11 @@ body {
     cursor: pointer;
     pointer-events: auto;
     opacity: 1;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.25s ease-out;
     will-change: opacity;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
+    transform: translateZ(0);
 }
 
 .capsule-machine-image.fade-out {
@@ -223,16 +224,17 @@ body {
     cursor: pointer;
     border: none;
     outline: none;
-    transition: opacity 0.3s ease;
+    transition: opacity 0.25s ease-out;
     will-change: opacity;
     -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
+    transform: translateZ(0);
 }
 
 /* 移动端：图片显示时，视频在图片后面，透明度为0（准备淡入） */
 .capsule-machine-video.behind-image {
     z-index: 9;
-    opacity: 0;
+    opacity: 0 !important;
     pointer-events: none;
 }
 

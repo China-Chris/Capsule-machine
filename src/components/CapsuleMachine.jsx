@@ -91,6 +91,9 @@ function CapsuleMachine() {
           video.currentTime = 0
         }
         video.pause()
+        // 清理内联样式，恢复 CSS 控制
+        video.style.opacity = ''
+        video.style.zIndex = ''
       }
     }
   }, [isMobile, showImage, isPlaying])
@@ -153,18 +156,27 @@ function CapsuleMachine() {
                   })
                 }
                 
-                // 确保视频在第一帧并准备好显示
+                // 确保视频在第一帧
                 video.currentTime = 0
                 video.pause()
                 video.muted = false
                 
-                // 等待一帧确保视频第一帧已渲染
+                // 等待多帧确保视频第一帧完全渲染
+                await new Promise(resolve => requestAnimationFrame(resolve))
                 await new Promise(resolve => requestAnimationFrame(resolve))
                 
-                // 开始交叉淡入淡出：先开始淡出图片
+                // 先让视频显示第一帧（opacity: 1），但不移除 behind-image 类
+                // 这样视频已经在图片后面准备好了
+                video.style.opacity = '1'
+                video.style.zIndex = '10'
+                
+                // 再等待一帧确保样式已应用
+                await new Promise(resolve => requestAnimationFrame(resolve))
+                
+                // 现在开始交叉淡入淡出：图片淡出，视频已经在显示
                 setShowImage(false)
                 
-                // 立即开始播放视频（此时图片正在淡出，视频正在淡入）
+                // 立即开始播放视频
                 playAnimation()
               } catch (error) {
                 console.error('播放视频时出错:', error)
