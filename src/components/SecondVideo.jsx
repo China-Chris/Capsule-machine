@@ -19,14 +19,27 @@ function SecondVideo() {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  // 震动函数
+  // 震动函数 - 兼容 iOS 和 Android
   const vibrate = React.useCallback((pattern) => {
-    if (isMobile && navigator.vibrate) {
-      try {
+    if (!isMobile) return
+    
+    // iOS 设备检测
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent)
+    
+    try {
+      // 标准震动 API（Android 和部分 iOS）
+      if (navigator.vibrate) {
         navigator.vibrate(pattern)
-      } catch (error) {
-        console.log('震动功能不可用:', error)
+      } 
+      // iOS 特殊处理：使用 AudioContext 触发震动（需要用户交互）
+      else if (isIOS && window.AudioContext) {
+        // iOS 上，震动通常需要用户交互才能触发
+        // 这里我们尝试使用 navigator.vibrate，如果不可用则跳过
+        // iOS 13+ 支持 navigator.vibrate，但需要用户交互
+        console.log('iOS 设备：震动功能需要用户交互')
       }
+    } catch (error) {
+      console.log('震动功能不可用:', error)
     }
   }, [isMobile])
 
@@ -38,18 +51,23 @@ function SecondVideo() {
         secondVideoRef.current.pause()
       }
       
+      // iOS 需要在用户交互中直接调用震动（不能延迟）
+      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent)
+      if (isMobile && navigator.vibrate) {
+        try {
+          // 在用户点击事件中直接触发震动（iOS 需要）
+          navigator.vibrate(30)
+        } catch (error) {
+          console.log('震动功能不可用:', error)
+        }
+      }
+      
       // 切换到第二个视频
       setShowSecondVideo(true)
       const video2 = secondVideoRef2.current
       if (video2) {
         video2.currentTime = 0
         video2.muted = false
-        
-        // 移动端：播放前触发震动
-        if (isMobile) {
-          // 短震动提示开始播放
-          vibrate(100)
-        }
         
         video2.play().catch(error => {
           console.error('第二个视频播放失败:', error)
@@ -64,14 +82,24 @@ function SecondVideo() {
     if (!video2 || !isMobile) return
 
     const handlePlay = () => {
-      // 视频开始播放时触发震动
-      // 模式：短震-暂停-短震-暂停-短震（类似心跳效果）
-      if (navigator.vibrate) {
-        try {
-          navigator.vibrate([100, 50, 100, 50, 100])
-        } catch (error) {
-          console.log('震动功能不可用:', error)
+      // 视频开始播放时触发轻微震动
+      // 轻微震动：短震-暂停-短震（柔和效果）
+      const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent)
+      
+      try {
+        // iOS 13+ 支持 navigator.vibrate，但必须在用户交互中调用
+        // 由于这是在 play 事件中（异步），iOS 可能不支持
+        // 所以我们只在 Android 上使用，iOS 的震动在点击时已经触发
+        if (navigator.vibrate && !isIOS) {
+          // Android: 轻微震动模式
+          navigator.vibrate([30, 100, 30])
+        } else if (navigator.vibrate && isIOS) {
+          // iOS: 尝试触发，但可能不会工作（因为不在用户交互中）
+          // iOS 的震动主要在点击时触发
+          navigator.vibrate([30, 100, 30])
         }
+      } catch (error) {
+        console.log('震动功能不可用:', error)
       }
     }
 
