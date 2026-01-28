@@ -83,32 +83,58 @@ export const CapsuleMachineProvider = ({ children }) => {
     const initVideo = () => {
       if (isInitialized || isPlaying) return
 
-      if (video.readyState >= 2) {
+      // 移动端可能需要 readyState >= 1 (HAVE_METADATA) 就可以显示第一帧
+      if (video.readyState >= 1) {
         video.currentTime = 0
         video.pause()
+        // 确保视频是静音的，这样在移动端才能正常加载和显示
+        video.muted = true
         setIsInitialized(true)
-        console.log('视频已初始化，显示第一帧')
+        console.log('视频已初始化，显示第一帧，readyState:', video.readyState)
+      }
+    }
+
+    const handleLoadedMetadata = () => {
+      if (!isInitialized) {
+        console.log('视频元数据加载完成')
+        initVideo()
       }
     }
 
     const handleLoadedData = () => {
       if (!isInitialized) {
-        console.log('视频预加载完成')
+        console.log('视频数据加载完成')
         initVideo()
       }
     }
 
+    const handleCanPlay = () => {
+      if (!isInitialized) {
+        console.log('视频可以播放')
+        initVideo()
+      }
+    }
+
+    // 添加多个事件监听以确保在移动端也能正确初始化
+    video.addEventListener('loadedmetadata', handleLoadedMetadata, { once: true })
     video.addEventListener('loadeddata', handleLoadedData, { once: true })
+    video.addEventListener('canplay', handleCanPlay, { once: true })
     video.addEventListener('ended', handleVideoEnd)
     video.addEventListener('error', handleVideoError)
 
-    // 延迟初始化
-    setTimeout(() => {
+    // 立即尝试初始化（如果视频已经加载）
+    initVideo()
+
+    // 延迟初始化（作为备用）
+    const timeoutId = setTimeout(() => {
       initVideo()
-    }, 100)
+    }, 300)
 
     return () => {
+      clearTimeout(timeoutId)
+      video.removeEventListener('loadedmetadata', handleLoadedMetadata)
       video.removeEventListener('loadeddata', handleLoadedData)
+      video.removeEventListener('canplay', handleCanPlay)
       video.removeEventListener('ended', handleVideoEnd)
       video.removeEventListener('error', handleVideoError)
     }

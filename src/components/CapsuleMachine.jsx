@@ -22,6 +22,7 @@ function CapsuleMachine() {
           className="capsule-machine-video"
           preload="auto"
           playsInline
+          muted
           onClick={(e) => {
             e.preventDefault()
             e.stopPropagation()
