@@ -1,11 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useCapsuleMachine } from '../contexts/CapsuleMachineContext'
+import PrizeModal from './PrizeModal'
 
 function SecondVideo() {
   const { secondVideoRef, replaySecondVideo } = useCapsuleMachine()
   const [showSecondVideo, setShowSecondVideo] = useState(false)
   const secondVideoRef2 = useRef(null)
+  const audioRef = useRef(null) // 音频引用 yx1.mp3
+  const audioRef2 = useRef(null) // 音频引用 yx2.mp3
   const [isMobile, setIsMobile] = useState(false)
+  const [showPrizeModal, setShowPrizeModal] = useState(false)
+  const hasShownPrizeRef = useRef(false) // 防重复触发
 
   useEffect(() => {
     // 检测是否是移动端
@@ -65,6 +70,7 @@ function SecondVideo() {
       // 切换到第二个视频
       setShowSecondVideo(true)
       const video2 = secondVideoRef2.current
+      const audio = audioRef.current
       if (video2) {
         video2.currentTime = 0
         video2.muted = false
@@ -72,7 +78,28 @@ function SecondVideo() {
         video2.play().catch(error => {
           console.error('第二个视频播放失败:', error)
         })
+        
+        // 同时播放音频
+        if (audio) {
+          audio.currentTime = 0
+          audio.play().catch(error => {
+            console.error('音频播放失败:', error)
+          })
+        }
       }
+    }
+  }
+
+  // 处理第二个视频的点击事件，同时播放音频
+  const handleSecondVideoClick = () => {
+    const audio = audioRef.current
+    
+    // 播放音频
+    if (audio) {
+      audio.currentTime = 0
+      audio.play().catch(error => {
+        console.error('音频播放失败:', error)
+      })
     }
   }
 
@@ -110,6 +137,92 @@ function SecondVideo() {
     }
   }, [isMobile, showSecondVideo])
 
+  // 监听第二个视频的时间更新，在第6秒时显示中奖弹窗
+  useEffect(() => {
+    const video2 = secondVideoRef2.current
+    if (!video2 || !showSecondVideo) return
+
+    const handleTimeUpdate = () => {
+      // 检查是否到达第6秒（6.0秒），且未显示过弹窗
+      if (video2.currentTime >= 6.0 && !hasShownPrizeRef.current) {
+        hasShownPrizeRef.current = true
+        
+        // 在显示弹窗前播放 yx2.mp3
+        const audio2 = audioRef2.current
+        if (audio2) {
+          audio2.currentTime = 0
+          audio2.play().catch(error => {
+            console.error('yx2.mp3 音频播放失败:', error)
+          })
+        }
+        
+        setShowPrizeModal(true)
+        console.log('显示中奖弹窗')
+      }
+    }
+
+    // 视频重新播放时重置标志
+    const handlePlay = () => {
+      // 如果视频从头开始播放，重置标志
+      if (video2.currentTime < 1.0) {
+        hasShownPrizeRef.current = false
+      }
+    }
+
+    video2.addEventListener('timeupdate', handleTimeUpdate)
+    video2.addEventListener('play', handlePlay)
+
+    return () => {
+      video2.removeEventListener('timeupdate', handleTimeUpdate)
+      video2.removeEventListener('play', handlePlay)
+    }
+  }, [showSecondVideo])
+
+  // 当切换到第二个视频时，重置弹窗标志
+  useEffect(() => {
+    if (showSecondVideo) {
+      hasShownPrizeRef.current = false
+    }
+  }, [showSecondVideo])
+
+  // 处理弹窗关闭，回到第一个视频
+  const handleModalClose = () => {
+    // 关闭弹窗
+    setShowPrizeModal(false)
+    
+    // 暂停第二个视频
+    const video2 = secondVideoRef2.current
+    if (video2) {
+      video2.pause()
+      video2.currentTime = 0
+    }
+    
+    // 暂停所有音频
+    const audio = audioRef.current
+    const audio2 = audioRef2.current
+    if (audio) {
+      audio.pause()
+      audio.currentTime = 0
+    }
+    if (audio2) {
+      audio2.pause()
+      audio2.currentTime = 0
+    }
+    
+    // 切换回第一个视频
+    setShowSecondVideo(false)
+    
+    // 重置弹窗标志
+    hasShownPrizeRef.current = false
+    
+    // 重置第一个视频到开始位置
+    const video1 = secondVideoRef.current
+    if (video1) {
+      video1.currentTime = 0
+      video1.muted = false
+    }
+  }
+
   return (
     <main className="main-content second-video-content">
       <div 
@@ -133,10 +246,33 @@ function SecondVideo() {
           className={`second-video ${showSecondVideo ? '' : 'hidden'}`}
           preload="auto"
           playsInline
+          onClick={handleSecondVideoClick}
         >
           <source src="/dakainiudan2.mp4" type="video/mp4" />
         </video>
+        
+        {/* 音频 - yx1.mp3 */}
+        <audio
+          ref={audioRef}
+          preload="auto"
+        >
+          <source src="/yx1.mp3" type="audio/mpeg" />
+        </audio>
+        
+        {/* 音频 - yx2.mp3 */}
+        <audio
+          ref={audioRef2}
+          preload="auto"
+        >
+          <source src="/yx2.mp3" type="audio/mpeg" />
+        </audio>
       </div>
+      
+      {/* 中奖弹窗 */}
+      <PrizeModal 
+        isOpen={showPrizeModal}
+        onClose={handleModalClose}
+      />
     </main>
   )
 }
