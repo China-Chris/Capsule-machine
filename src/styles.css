@@ -516,6 +516,11 @@ body {
     border: none;
     outline: none;
     display: block;
+    cursor: pointer;
+}
+
+.second-video.hidden {
+    display: none;
 }
 
 /* 桌面端 */
