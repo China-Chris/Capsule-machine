@@ -13,17 +13,6 @@ body {
     background: #ffffff;
 }
 
-/* 第二个视频显示时禁止滚动 */
-body.no-scroll {
-    overflow: hidden !important;
-    position: fixed !important;
-    width: 100% !important;
-}
-
-html.no-scroll {
-    overflow: hidden !important;
-}
-
 /* ========== 背景层：纯白色背景 ========== */
 .background-layer {
     position: fixed;
