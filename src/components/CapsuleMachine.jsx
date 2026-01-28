@@ -111,61 +111,82 @@ function CapsuleMachine() {
             src="/niudanji.png"
             alt="扭蛋机"
             className={`capsule-machine-image ${showImage ? '' : 'fade-out'}`}
-            onClick={async (e) => {
+            onTouchStart={async (e) => {
+              // 移动端使用 touchstart 事件，响应更快
               e.preventDefault()
               e.stopPropagation()
-              if (showImage && !isPlaying) {
-                const video = videoRef.current
-                if (!video) {
-                  console.error('视频元素未找到')
-                  return
+              
+              // 防止重复点击
+              if (!showImage || isPlaying) {
+                return
+              }
+              
+              const video = videoRef.current
+              if (!video) {
+                console.error('视频元素未找到')
+                return
+              }
+              
+              console.log('点击图片，准备播放视频，视频状态:', {
+                readyState: video.readyState,
+                paused: video.paused,
+                muted: video.muted
+              })
+              
+              try {
+                // 如果视频还没加载好，等待一下
+                if (video.readyState < 2) {
+                  await new Promise((resolve) => {
+                    const handleCanPlay = () => {
+                      video.removeEventListener('canplay', handleCanPlay)
+                      resolve()
+                    }
+                    video.addEventListener('canplay', handleCanPlay)
+                    // 超时保护
+                    setTimeout(() => {
+                      video.removeEventListener('canplay', handleCanPlay)
+                      resolve()
+                    }, 2000)
+                  })
                 }
                 
-                console.log('点击图片，准备播放视频，视频状态:', {
-                  readyState: video.readyState,
-                  paused: video.paused,
-                  muted: video.muted
-                })
+                // 确保视频在第一帧
+                video.currentTime = 0
+                video.pause()
+                video.muted = false
                 
-                try {
-                  // 如果视频还没加载好，等待一下
-                  if (video.readyState < 2) {
-                    await new Promise((resolve) => {
-                      const handleCanPlay = () => {
-                        video.removeEventListener('canplay', handleCanPlay)
-                        resolve()
-                      }
-                      video.addEventListener('canplay', handleCanPlay)
-                      // 超时保护
-                      setTimeout(() => {
-                        video.removeEventListener('canplay', handleCanPlay)
-                        resolve()
-                      }, 2000)
-                    })
-                  }
-                  
-                  // 确保视频在第一帧（多次设置确保生效）
-                  video.currentTime = 0
-                  video.pause()
-                  
-                  // 等待一帧确保视频重置到第一帧
-                  await new Promise(resolve => requestAnimationFrame(resolve))
-                  
-                  // 再次确保在第一帧
-                  video.currentTime = 0
-                  video.pause()
-                  
-                  // 取消静音
-                  video.muted = false
-                  
-                  // 隐藏图片
-                  setShowImage(false)
-                  
-                  // 播放视频（此时视频已经在第一帧）
-                  playAnimation()
-                } catch (error) {
-                  console.error('播放视频时出错:', error)
-                }
+                // 立即隐藏图片
+                setShowImage(false)
+                
+                // 直接播放，不使用 requestAnimationFrame 延迟
+                playAnimation()
+              } catch (error) {
+                console.error('播放视频时出错:', error)
+              }
+            }}
+            onClick={async (e) => {
+              // 保留 onClick 作为备用
+              e.preventDefault()
+              e.stopPropagation()
+              
+              // 防止重复点击
+              if (!showImage || isPlaying) {
+                return
+              }
+              
+              const video = videoRef.current
+              if (!video) {
+                return
+              }
+              
+              try {
+                video.currentTime = 0
+                video.pause()
+                video.muted = false
+                setShowImage(false)
+                playAnimation()
+              } catch (error) {
+                console.error('播放视频时出错:', error)
               }
             }}
           />
