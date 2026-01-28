@@ -190,14 +190,14 @@ export const CapsuleMachineProvider = ({ children }) => {
     })
   }, [])
 
-  // 第二个视频播放结束后的处理 - 每隔一分钟重新播放
+  // 第二个视频播放结束后的处理 - 每隔25秒重新播放
   const handleSecondVideoEnd = useCallback(() => {
-    console.log('第二个视频播放结束，等待60秒后重新播放')
+    console.log('第二个视频播放结束，等待25秒后重新播放')
     
-    // 等待60秒（60000毫秒）后重新播放
+    // 等待25秒（25000毫秒）后重新播放
     setTimeout(() => {
       replaySecondVideo()
-    }, 60000) // 60秒 = 60000毫秒
+    }, 25000) // 25秒 = 25000毫秒
   }, [replaySecondVideo])
 
   // 当切换到第二个视频时，自动播放
