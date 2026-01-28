@@ -18,6 +18,7 @@ export const CapsuleMachineProvider = ({ children }) => {
   const [showSecondVideo, setShowSecondVideo] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [hasPlayedOnce, setHasPlayedOnce] = useState(false)
+  const isTransitioningRef = useRef(false) // 防止重复触发过渡
 
   // 播放扭蛋机动画
   const playAnimation = useCallback(() => {
@@ -26,6 +27,8 @@ export const CapsuleMachineProvider = ({ children }) => {
     }
 
     console.log('开始播放视频')
+    // 重置防重复触发标志
+    isTransitioningRef.current = false
     setIsPlaying(true)
 
     const video = videoRef.current
@@ -50,8 +53,15 @@ export const CapsuleMachineProvider = ({ children }) => {
   }, [isPlaying])
 
   // 视频播放结束后的处理
-  const handleVideoEnd = () => {
+  const handleVideoEnd = useCallback(() => {
+    // 防止重复触发
+    if (isTransitioningRef.current) {
+      return
+    }
+    
     console.log('第一个视频播放结束')
+    isTransitioningRef.current = true
+    
     const video = videoRef.current
     if (video) {
       // 确保视频停在最后一帧
@@ -84,13 +94,13 @@ export const CapsuleMachineProvider = ({ children }) => {
         }, 100)
       }, 300) // 300ms后切换内容，让淡出和淡入有重叠
     }, 500) // 等待500毫秒
-  }
+  }, [])
 
   // 视频加载错误处理
-  const handleVideoError = () => {
+  const handleVideoError = useCallback(() => {
     console.error('视频加载失败')
     setIsPlaying(false)
-  }
+  }, [])
 
   // 初始化视频（显示第一帧）
   useEffect(() => {
@@ -160,7 +170,7 @@ export const CapsuleMachineProvider = ({ children }) => {
       video.removeEventListener('ended', handleVideoEnd)
       video.removeEventListener('error', handleVideoError)
     }
-  }, [isInitialized, isPlaying, hasPlayedOnce])
+  }, [isInitialized, isPlaying, hasPlayedOnce, handleVideoEnd, handleVideoError])
 
   // 键盘支持
   useEffect(() => {
