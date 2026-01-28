@@ -70,9 +70,12 @@ function CapsuleMachine() {
   }, [isPlaying])
 
   useEffect(() => {
-    // 移动端：播放时隐藏图片，显示视频
+    // 移动端：播放时开始淡出图片，淡入视频
     if (isMobile && isPlaying) {
-      setShowImage(false)
+      // 延迟一点确保视频第一帧已显示
+      requestAnimationFrame(() => {
+        setShowImage(false)
+      })
     }
   }, [isMobile, isPlaying])
 
@@ -150,15 +153,18 @@ function CapsuleMachine() {
                   })
                 }
                 
-                // 确保视频在第一帧
+                // 确保视频在第一帧并准备好显示
                 video.currentTime = 0
                 video.pause()
                 video.muted = false
                 
-                // 立即隐藏图片
+                // 等待一帧确保视频第一帧已渲染
+                await new Promise(resolve => requestAnimationFrame(resolve))
+                
+                // 开始交叉淡入淡出：先开始淡出图片
                 setShowImage(false)
                 
-                // 直接播放，不使用 requestAnimationFrame 延迟
+                // 立即开始播放视频（此时图片正在淡出，视频正在淡入）
                 playAnimation()
               } catch (error) {
                 console.error('播放视频时出错:', error)
@@ -183,8 +189,13 @@ function CapsuleMachine() {
                 video.currentTime = 0
                 video.pause()
                 video.muted = false
-                setShowImage(false)
-                playAnimation()
+                
+                // 等待一帧确保视频第一帧已渲染
+                requestAnimationFrame(() => {
+                  // 开始交叉淡入淡出
+                  setShowImage(false)
+                  playAnimation()
+                })
               } catch (error) {
                 console.error('播放视频时出错:', error)
               }

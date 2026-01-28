@@ -198,6 +198,9 @@ body {
     pointer-events: auto;
     opacity: 1;
     transition: opacity 0.3s ease;
+    will-change: opacity;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
 .capsule-machine-image.fade-out {
@@ -221,13 +224,28 @@ body {
     border: none;
     outline: none;
     transition: opacity 0.3s ease;
+    will-change: opacity;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
-/* 移动端：图片显示时，视频在图片后面但不隐藏（预加载第一帧） */
+/* 移动端：图片显示时，视频在图片后面，透明度为0（准备淡入） */
 .capsule-machine-video.behind-image {
     z-index: 9;
-    opacity: 1;
+    opacity: 0;
     pointer-events: none;
+}
+
+/* 移动端：视频准备淡入时 */
+.capsule-machine-video.fade-in-ready {
+    opacity: 0;
+    z-index: 10;
+}
+
+/* 移动端：图片淡出后，视频淡入（移除 behind-image 类时） */
+.capsule-machine-video:not(.behind-image) {
+    opacity: 1;
+    z-index: 10;
 }
 
 /* ========== 两侧辅助文案 ========== */
