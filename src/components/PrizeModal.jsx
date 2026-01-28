@@ -1,8 +1,23 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo, useRef } from 'react'
 
 function PrizeModal({ isOpen, onClose }) {
   const [isVisible, setIsVisible] = useState(false)
   const [isMobile, setIsMobile] = useState(false)
+  const [showProof, setShowProof] = useState(false)
+  const printerAudioRef = useRef(null) // 打印机音频引用
+  
+  // 生成唯一的凭证码
+  const proofCode = useMemo(() => {
+    return Math.random().toString(36).substring(2, 10).toUpperCase()
+  }, [isOpen])
+  
+  // 生成zkProof内容
+  const zkProofContent = useMemo(() => {
+    // 生成一个类似哈希值的zkProof字符串
+    const hash1 = Math.random().toString(36).substring(2, 18)
+    const hash2 = Math.random().toString(36).substring(2, 18)
+    return `${hash1}${hash2}`.toUpperCase().match(/.{1,8}/g)?.join(' ') || ''
+  }, [isOpen])
 
   useEffect(() => {
     // 检测是否是移动端
@@ -22,8 +37,11 @@ function PrizeModal({ isOpen, onClose }) {
       setTimeout(() => {
         setIsVisible(true)
       }, 10)
+      // 重置奖券状态
+      setShowProof(false)
     } else {
       setIsVisible(false)
+      setShowProof(false)
     }
   }, [isOpen])
 
@@ -63,14 +81,55 @@ function PrizeModal({ isOpen, onClose }) {
             <button 
               className="prize-proof-button"
               onClick={() => {
-                // 生成poof证明的逻辑
-                console.log('生成poof证明')
+                // 播放打印机音频
+                const audio = printerAudioRef.current
+                if (audio) {
+                  audio.currentTime = 0
+                  audio.play().catch(error => {
+                    console.error('打印机音频播放失败:', error)
+                  })
+                }
+                // 显示奖券
+                setShowProof(true)
               }}
             >
               生成poof证明
             </button>
           </div>
         </div>
+        
+        {/* 打印机出纸口效果 */}
+        {showProof && (
+          <div className="printer-slot">
+            <div className="printer-slot-line"></div>
+          </div>
+        )}
+        
+        {/* 奖券 - 收据打印效果 */}
+        <div className={`prize-proof-ticket ${showProof ? 'show' : ''}`}>
+          <div className="proof-ticket-content">
+            <div className="proof-ticket-header">
+              <h3>ZK Proof</h3>
+            </div>
+            <div className="proof-ticket-body">
+              <div className="proof-ticket-info">
+                <p className="proof-prize-name">{zkProofContent}</p>
+              </div>
+            </div>
+            {/* 收据底部虚线 */}
+            <div className="proof-ticket-footer">
+              <div className="ticket-tear-line"></div>
+            </div>
+          </div>
+        </div>
+        
+        {/* 打印机音频 */}
+        <audio
+          ref={printerAudioRef}
+          preload="auto"
+        >
+          <source src="/dayinji.mp3" type="audio/mpeg" />
+        </audio>
       </div>
     </>
   )
