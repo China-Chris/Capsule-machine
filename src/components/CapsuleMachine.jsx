@@ -6,6 +6,7 @@ function CapsuleMachine() {
   const containerRef = React.useRef(null)
   const [isMobile, setIsMobile] = useState(false)
   const [showImage, setShowImage] = useState(true)
+  const [videoReady, setVideoReady] = useState(false)
 
   useEffect(() => {
     // 检测是否是移动端
@@ -19,6 +20,55 @@ function CapsuleMachine() {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
+  // 监听视频加载状态，确保未播放时在第一帧（或最后一帧如果已播放过）
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    const setToCorrectFrame = () => {
+      // 只在视频未播放时设置帧位置
+      if (!isPlaying && video.readyState >= 1) {
+        // 如果视频已经播放过，停在最后一帧；否则显示第一帧
+        // 注意：这里我们依赖 Context 中的 hasPlayedOnce 状态
+        // 但由于无法直接访问，我们通过检查 currentTime 来判断
+        // 如果 currentTime 接近 duration，说明已经播放完成
+        if (video.duration && video.currentTime > video.duration - 0.1) {
+          // 已经在最后一帧，保持
+          video.currentTime = video.duration
+        } else if (video.currentTime > 0.1) {
+          // 不在第一帧也不在最后一帧，可能是播放中，不处理
+          return
+        } else {
+          // 在第一帧或接近第一帧
+          video.currentTime = 0
+        }
+        video.pause()
+      }
+    }
+
+    const handleCanPlay = () => {
+      // 确保视频可以播放
+      if (video.readyState >= 2 && !isPlaying) {
+        setToCorrectFrame()
+        setVideoReady(true)
+      }
+    }
+
+    // 如果视频已经加载好，立即设置（只在未播放时）
+    if (video.readyState >= 2 && !isPlaying) {
+      setToCorrectFrame()
+      setVideoReady(true)
+    }
+
+    video.addEventListener('canplay', handleCanPlay)
+    video.addEventListener('loadeddata', handleCanPlay)
+
+    return () => {
+      video.removeEventListener('canplay', handleCanPlay)
+      video.removeEventListener('loadeddata', handleCanPlay)
+    }
+  }, [isPlaying])
+
   useEffect(() => {
     // 移动端：播放时隐藏图片，显示视频
     if (isMobile && isPlaying) {
@@ -26,44 +76,103 @@ function CapsuleMachine() {
     }
   }, [isMobile, isPlaying])
 
-  const handleClick = (e) => {
-    if (isMobile && showImage) {
-      // 移动端点击图片时，隐藏图片并播放视频
-      setShowImage(false)
-      playAnimation()
-    } else if (!isMobile) {
-      // 桌面端直接播放
-      if (e.target !== videoRef.current) {
-        playAnimation()
+  // 移动端：当图片隐藏、显示视频时，确保视频在正确帧（仅在未播放时）
+  useEffect(() => {
+    if (isMobile && !showImage && !isPlaying) {
+      const video = videoRef.current
+      if (video && video.readyState >= 1) {
+        // 如果视频已经播放过（接近最后一帧），保持在最后一帧；否则在第一帧
+        if (video.duration && video.currentTime > video.duration - 0.1) {
+          video.currentTime = video.duration
+        } else {
+          video.currentTime = 0
+        }
+        video.pause()
       }
     }
-  }
+  }, [isMobile, showImage, isPlaying])
 
   return (
     <div className="capsule-machine-container">
       <div 
         className="capsule-machine-wrapper" 
         ref={containerRef}
-        onClick={handleClick}
+        onClick={(e) => {
+          // 桌面端点击容器时播放
+          if (!isMobile && e.target !== videoRef.current) {
+            playAnimation()
+          }
+        }}
         style={{ pointerEvents: isPlaying ? 'none' : 'auto' }}
       >
         {/* 移动端：先显示图片 */}
-        {isMobile && showImage && (
+        {isMobile && (
           <img
             src="/niudanji.png"
             alt="扭蛋机"
-            className="capsule-machine-image"
-            onClick={(e) => {
+            className={`capsule-machine-image ${showImage ? '' : 'fade-out'}`}
+            onClick={async (e) => {
               e.preventDefault()
               e.stopPropagation()
-              setShowImage(false)
-              playAnimation()
+              if (showImage && !isPlaying) {
+                const video = videoRef.current
+                if (!video) {
+                  console.error('视频元素未找到')
+                  return
+                }
+                
+                console.log('点击图片，准备播放视频，视频状态:', {
+                  readyState: video.readyState,
+                  paused: video.paused,
+                  muted: video.muted
+                })
+                
+                try {
+                  // 如果视频还没加载好，等待一下
+                  if (video.readyState < 2) {
+                    await new Promise((resolve) => {
+                      const handleCanPlay = () => {
+                        video.removeEventListener('canplay', handleCanPlay)
+                        resolve()
+                      }
+                      video.addEventListener('canplay', handleCanPlay)
+                      // 超时保护
+                      setTimeout(() => {
+                        video.removeEventListener('canplay', handleCanPlay)
+                        resolve()
+                      }, 2000)
+                    })
+                  }
+                  
+                  // 确保视频在第一帧（多次设置确保生效）
+                  video.currentTime = 0
+                  video.pause()
+                  
+                  // 等待一帧确保视频重置到第一帧
+                  await new Promise(resolve => requestAnimationFrame(resolve))
+                  
+                  // 再次确保在第一帧
+                  video.currentTime = 0
+                  video.pause()
+                  
+                  // 取消静音
+                  video.muted = false
+                  
+                  // 隐藏图片
+                  setShowImage(false)
+                  
+                  // 播放视频（此时视频已经在第一帧）
+                  playAnimation()
+                } catch (error) {
+                  console.error('播放视频时出错:', error)
+                }
+              }
             }}
           />
         )}
         <video
           ref={videoRef}
-          className={`capsule-machine-video ${isMobile && showImage ? 'hidden' : ''}`}
+          className={`capsule-machine-video ${isMobile && showImage ? 'behind-image' : ''}`}
           preload="auto"
           playsInline
           muted

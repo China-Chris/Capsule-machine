@@ -17,6 +17,7 @@ export const CapsuleMachineProvider = ({ children }) => {
   const [isInitialized, setIsInitialized] = useState(false)
   const [showSecondVideo, setShowSecondVideo] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(false)
+  const [hasPlayedOnce, setHasPlayedOnce] = useState(false)
 
   // 播放扭蛋机动画
   const playAnimation = useCallback(() => {
@@ -51,7 +52,23 @@ export const CapsuleMachineProvider = ({ children }) => {
   // 视频播放结束后的处理
   const handleVideoEnd = () => {
     console.log('第一个视频播放结束')
+    const video = videoRef.current
+    if (video) {
+      // 确保视频停在最后一帧
+      video.pause()
+      // 设置到视频的最后一帧（duration 可能略有误差，使用 seeked 事件确保）
+      if (video.duration) {
+        video.currentTime = video.duration
+        // 确保停在最后一帧
+        video.addEventListener('seeked', function onSeeked() {
+          video.pause()
+          video.removeEventListener('seeked', onSeeked)
+        }, { once: true })
+      }
+    }
+    
     setIsPlaying(false)
+    setHasPlayedOnce(true)
     
     // 等待一段时间后开始过渡
     setTimeout(() => {
@@ -85,12 +102,17 @@ export const CapsuleMachineProvider = ({ children }) => {
 
       // 移动端可能需要 readyState >= 1 (HAVE_METADATA) 就可以显示第一帧
       if (video.readyState >= 1) {
-        video.currentTime = 0
+        // 如果视频已经播放过，停在最后一帧；否则显示第一帧
+        if (hasPlayedOnce && video.duration) {
+          video.currentTime = video.duration
+        } else {
+          video.currentTime = 0
+        }
         video.pause()
         // 确保视频是静音的，这样在移动端才能正常加载和显示
         video.muted = true
         setIsInitialized(true)
-        console.log('视频已初始化，显示第一帧，readyState:', video.readyState)
+        console.log('视频已初始化，显示', hasPlayedOnce ? '最后一帧' : '第一帧', 'readyState:', video.readyState)
       }
     }
 
@@ -138,7 +160,7 @@ export const CapsuleMachineProvider = ({ children }) => {
       video.removeEventListener('ended', handleVideoEnd)
       video.removeEventListener('error', handleVideoError)
     }
-  }, [isInitialized, isPlaying])
+  }, [isInitialized, isPlaying, hasPlayedOnce])
 
   // 键盘支持
   useEffect(() => {

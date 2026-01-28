@@ -196,6 +196,14 @@ body {
     z-index: 11;
     cursor: pointer;
     pointer-events: auto;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.capsule-machine-image.fade-out {
+    opacity: 0;
+    pointer-events: none;
+    z-index: 9;
 }
 
 /* 动画视频层 - 默认显示第一帧但不播放 */
@@ -215,10 +223,11 @@ body {
     transition: opacity 0.3s ease;
 }
 
-.capsule-machine-video.hidden {
-    opacity: 0;
-    pointer-events: none;
+/* 移动端：图片显示时，视频在图片后面但不隐藏（预加载第一帧） */
+.capsule-machine-video.behind-image {
     z-index: 9;
+    opacity: 1;
+    pointer-events: none;
 }
 
 /* ========== 两侧辅助文案 ========== */
