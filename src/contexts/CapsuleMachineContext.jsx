@@ -19,6 +19,7 @@ export const CapsuleMachineProvider = ({ children }) => {
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [hasPlayedOnce, setHasPlayedOnce] = useState(false)
   const isTransitioningRef = useRef(false) // 防止重复触发过渡
+  const videoEndTimersRef = useRef([]) // 存储视频结束相关的定时器
 
   // 播放扭蛋机动画
   const playAnimation = useCallback(() => {
@@ -59,6 +60,10 @@ export const CapsuleMachineProvider = ({ children }) => {
       return
     }
     
+    // 清理之前的定时器
+    videoEndTimersRef.current.forEach(timer => clearTimeout(timer))
+    videoEndTimersRef.current = []
+    
     console.log('第一个视频播放结束')
     isTransitioningRef.current = true
     
@@ -81,19 +86,22 @@ export const CapsuleMachineProvider = ({ children }) => {
     setHasPlayedOnce(true)
     
     // 等待一段时间后开始过渡
-    setTimeout(() => {
+    const timer1 = setTimeout(() => {
       console.log('开始过渡到第二个视频')
       setIsTransitioning(true)
       
       // 同时开始淡出第一个内容，并准备显示第二个内容
-      setTimeout(() => {
+      const timer2 = setTimeout(() => {
         setShowSecondVideo(true)
         // 等待第二个内容淡入完成后再清除过渡状态
-        setTimeout(() => {
+        const timer3 = setTimeout(() => {
           setIsTransitioning(false)
         }, 100)
+        videoEndTimersRef.current.push(timer3)
       }, 300) // 300ms后切换内容，让淡出和淡入有重叠
+      videoEndTimersRef.current.push(timer2)
     }, 500) // 等待500毫秒
+    videoEndTimersRef.current.push(timer1)
   }, [])
 
   // 视频加载错误处理
@@ -200,12 +208,19 @@ export const CapsuleMachineProvider = ({ children }) => {
     })
   }, [])
 
+  const secondVideoTimerRef = useRef(null) // 存储第二个视频的定时器
+
   // 第二个视频播放结束后的处理 - 每隔25秒重新播放
   const handleSecondVideoEnd = useCallback(() => {
     console.log('第二个视频播放结束，等待25秒后重新播放')
     
+    // 清理之前的定时器
+    if (secondVideoTimerRef.current) {
+      clearTimeout(secondVideoTimerRef.current)
+    }
+    
     // 等待25秒（25000毫秒）后重新播放
-    setTimeout(() => {
+    secondVideoTimerRef.current = setTimeout(() => {
       replaySecondVideo()
     }, 25000) // 25秒 = 25000毫秒
   }, [replaySecondVideo])
@@ -230,9 +245,27 @@ export const CapsuleMachineProvider = ({ children }) => {
     
     return () => {
       clearTimeout(timer)
+      if (secondVideoTimerRef.current) {
+        clearTimeout(secondVideoTimerRef.current)
+        secondVideoTimerRef.current = null
+      }
       secondVideo.removeEventListener('ended', handleSecondVideoEnd)
     }
   }, [showSecondVideo, handleSecondVideoEnd])
+
+  // 组件卸载时清理所有定时器
+  useEffect(() => {
+    return () => {
+      // 清理视频结束相关的定时器
+      videoEndTimersRef.current.forEach(timer => clearTimeout(timer))
+      videoEndTimersRef.current = []
+      // 清理第二个视频的定时器
+      if (secondVideoTimerRef.current) {
+        clearTimeout(secondVideoTimerRef.current)
+        secondVideoTimerRef.current = null
+      }
+    }
+  }, [])
 
   const value = {
     videoRef,

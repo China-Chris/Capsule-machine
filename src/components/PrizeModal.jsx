@@ -34,11 +34,15 @@ function PrizeModal({ isOpen, onClose }) {
   useEffect(() => {
     if (isOpen) {
       // 延迟一点显示，触发动画
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         setIsVisible(true)
       }, 10)
       // 重置奖券状态
       setShowProof(false)
+      
+      return () => {
+        clearTimeout(timer)
+      }
     } else {
       setIsVisible(false)
       setShowProof(false)

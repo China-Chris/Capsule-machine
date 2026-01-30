@@ -142,9 +142,19 @@ function SecondVideo() {
     const video2 = secondVideoRef2.current
     if (!video2 || !showSecondVideo) return
 
+    let lastCheckTime = 0
+    const CHECK_INTERVAL = 0.5 // 每0.5秒检查一次，减少频繁调用
+
     const handleTimeUpdate = () => {
+      // 节流：减少检查频率
+      const currentTime = video2.currentTime
+      if (currentTime - lastCheckTime < CHECK_INTERVAL) {
+        return
+      }
+      lastCheckTime = currentTime
+
       // 检查是否到达第6秒（6.0秒），且未显示过弹窗
-      if (video2.currentTime >= 6.0 && !hasShownPrizeRef.current) {
+      if (currentTime >= 6.0 && !hasShownPrizeRef.current) {
         hasShownPrizeRef.current = true
         
         // 在显示弹窗前播放 yx2.mp3
@@ -166,6 +176,7 @@ function SecondVideo() {
       // 如果视频从头开始播放，重置标志
       if (video2.currentTime < 1.0) {
         hasShownPrizeRef.current = false
+        lastCheckTime = 0
       }
     }
 

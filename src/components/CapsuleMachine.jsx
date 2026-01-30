@@ -7,27 +7,35 @@ function CapsuleMachine() {
   const [isMobile, setIsMobile] = useState(false)
   const [showImage, setShowImage] = useState(true)
   const [videoReady, setVideoReady] = useState(false)
+  const isMountedRef = React.useRef(true) // 组件挂载标志
 
   useEffect(() => {
+    isMountedRef.current = true
+    
     // 检测是否是移动端
     const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 640)
+      if (isMountedRef.current) {
+        setIsMobile(window.innerWidth <= 640)
+      }
     }
     
     checkMobile()
     window.addEventListener('resize', checkMobile)
     
-    return () => window.removeEventListener('resize', checkMobile)
+    return () => {
+      isMountedRef.current = false
+      window.removeEventListener('resize', checkMobile)
+    }
   }, [])
 
   // 监听视频加载状态，确保未播放时在第一帧（或最后一帧如果已播放过）
   useEffect(() => {
     const video = videoRef.current
-    if (!video) return
+    if (!video || !isMountedRef.current) return
 
     const setToCorrectFrame = () => {
       // 只在视频未播放时设置帧位置
-      if (!isPlaying && video.readyState >= 1) {
+      if (!isPlaying && video.readyState >= 1 && isMountedRef.current) {
         // 如果视频已经播放过，停在最后一帧；否则显示第一帧
         // 注意：这里我们依赖 Context 中的 hasPlayedOnce 状态
         // 但由于无法直接访问，我们通过检查 currentTime 来判断
@@ -48,14 +56,14 @@ function CapsuleMachine() {
 
     const handleCanPlay = () => {
       // 确保视频可以播放
-      if (video.readyState >= 2 && !isPlaying) {
+      if (video.readyState >= 2 && !isPlaying && isMountedRef.current) {
         setToCorrectFrame()
         setVideoReady(true)
       }
     }
 
     // 如果视频已经加载好，立即设置（只在未播放时）
-    if (video.readyState >= 2 && !isPlaying) {
+    if (video.readyState >= 2 && !isPlaying && isMountedRef.current) {
       setToCorrectFrame()
       setVideoReady(true)
     }
@@ -143,13 +151,19 @@ function CapsuleMachine() {
                 // 如果视频还没加载好，等待一下
                 if (video.readyState < 2) {
                   await new Promise((resolve) => {
+                    let isResolved = false
                     const handleCanPlay = () => {
+                      if (isResolved) return
+                      isResolved = true
                       video.removeEventListener('canplay', handleCanPlay)
+                      if (timeoutId) clearTimeout(timeoutId)
                       resolve()
                     }
                     video.addEventListener('canplay', handleCanPlay)
                     // 超时保护
-                    setTimeout(() => {
+                    const timeoutId = setTimeout(() => {
+                      if (isResolved) return
+                      isResolved = true
                       video.removeEventListener('canplay', handleCanPlay)
                       resolve()
                     }, 2000)
@@ -174,10 +188,11 @@ function CapsuleMachine() {
                 await new Promise(resolve => requestAnimationFrame(resolve))
                 
                 // 现在开始交叉淡入淡出：图片淡出，视频已经在显示
-                setShowImage(false)
-                
-                // 立即开始播放视频
-                playAnimation()
+                if (isMountedRef.current) {
+                  setShowImage(false)
+                  // 立即开始播放视频
+                  playAnimation()
+                }
               } catch (error) {
                 console.error('播放视频时出错:', error)
               }
@@ -205,8 +220,10 @@ function CapsuleMachine() {
                 // 等待一帧确保视频第一帧已渲染
                 requestAnimationFrame(() => {
                   // 开始交叉淡入淡出
-                  setShowImage(false)
-                  playAnimation()
+                  if (isMountedRef.current) {
+                    setShowImage(false)
+                    playAnimation()
+                  }
                 })
               } catch (error) {
                 console.error('播放视频时出错:', error)
